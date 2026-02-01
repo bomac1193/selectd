@@ -16,9 +16,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "No file uploaded" }, { status: 400 });
   }
 
-  if (!file.type.startsWith("audio/")) {
+  const isAudio = file.type.startsWith("audio/");
+  const isImage = file.type.startsWith("image/");
+
+  if (!isAudio && !isImage) {
     return Response.json(
-      { error: "Only audio files are supported" },
+      { error: "Only audio and image files are supported" },
       { status: 415 }
     );
   }

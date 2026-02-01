@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Cropper from "react-easy-crop";
 import { Button, Card, Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
+import type { Area } from "react-easy-crop";
 
 type TrackSource = "UPLOAD" | "SOUNDCLOUD" | "YOUTUBE";
 
@@ -28,6 +30,10 @@ export default function SubmitPage() {
   const [dragActiveCover, setDragActiveCover] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [form, setForm] = useState<FormState>({
@@ -128,7 +134,82 @@ export default function SubmitPage() {
   const handleCoverFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
-    void uploadCoverImage(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const createImage = (url: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const image = new window.Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (error) => reject(error));
+      image.src = url;
+    });
+
+  const getCroppedImg = async (
+    imageSrc: string,
+    pixelCrop: Area
+  ): Promise<Blob> => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("No 2d context");
+    }
+
+    canvas.width = 3000;
+    canvas.height = 3000;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      3000,
+      3000
+    );
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas is empty"));
+          return;
+        }
+        resolve(blob);
+      }, "image/jpeg", 0.95);
+    });
+  };
+
+  const handleCropConfirm = async () => {
+    if (!imageToCrop || !croppedAreaPixels) return;
+
+    try {
+      setUploadingCover(true);
+      const croppedBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      const file = new File([croppedBlob], "cover.jpg", { type: "image/jpeg" });
+
+      await uploadCoverImage(file);
+      setImageToCrop(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    } catch (error) {
+      setCoverUploadError(
+        error instanceof Error ? error.message : "Crop failed"
+      );
+    } finally {
+      setUploadingCover(false);
+    }
   };
 
   const handleSourceSelect = (source: TrackSource) => {
@@ -378,58 +459,72 @@ export default function SubmitPage() {
               <label className="block text-sm uppercase tracking-wider mb-2 text-foreground/60">
                 Cover Image
               </label>
-              <div
-                className={cn(
-                  "w-full border border-border bg-background transition cursor-pointer",
-                  dragActiveCover && "border-foreground",
-                  form.coverUrl ? "p-2" : "px-4 py-8 text-center"
-                )}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragActiveCover(true);
-                }}
-                onDragLeave={() => setDragActiveCover(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragActiveCover(false);
-                  handleCoverFiles(e.dataTransfer.files);
-                }}
-                onClick={() => coverInputRef.current?.click()}
-              >
-                <input
-                  ref={coverInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleCoverFiles(e.target.files)}
-                />
-                {form.coverUrl ? (
-                  <div className="relative w-full aspect-square">
-                    <Image
-                      src={form.coverUrl}
-                      alt="Cover preview"
-                      fill
-                      className="object-cover"
-                    />
+              {form.coverUrl ? (
+                <div className="w-48 mx-auto">
+                  <div className="border border-border bg-background p-2 mb-2">
+                    <div className="relative w-full aspect-square">
+                      <Image
+                        src={form.coverUrl}
+                        alt="Cover preview"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-foreground/60">
-                      Select image or drag
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setForm((prev) => ({ ...prev, coverUrl: "" }));
+                      if (coverInputRef.current) {
+                        coverInputRef.current.value = "";
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Change Image
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "w-48 border border-border bg-background transition cursor-pointer mx-auto px-4 py-8 text-center",
+                    dragActiveCover && "border-foreground"
+                  )}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActiveCover(true);
+                  }}
+                  onDragLeave={() => setDragActiveCover(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragActiveCover(false);
+                    handleCoverFiles(e.dataTransfer.files);
+                  }}
+                  onClick={() => coverInputRef.current?.click()}
+                >
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleCoverFiles(e.target.files)}
+                  />
+                  <p className="text-sm text-foreground/60">
+                    Select image or drag
+                  </p>
+                  {uploadingCover && (
+                    <p className="text-xs text-foreground/60 mt-2">
+                      Processing
                     </p>
-                    {uploadingCover && (
-                      <p className="text-xs text-foreground/60 mt-2">
-                        Processing
-                      </p>
-                    )}
-                    {coverUploadError && (
-                      <p className="text-xs text-foreground/60 mt-2">
-                        Upload failed
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
+                  )}
+                  {coverUploadError && (
+                    <p className="text-xs text-foreground/60 mt-2">
+                      Upload failed
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -510,6 +605,81 @@ export default function SubmitPage() {
             >
               Submit
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Crop Modal */}
+      {imageToCrop && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <div className="w-full max-w-4xl mx-auto p-8">
+            <div className="bg-background border border-border p-6">
+              <h2 className="text-lg uppercase tracking-wider mb-4 text-foreground/60">
+                Position Image
+              </h2>
+
+              <div className="relative w-full h-[500px] bg-black/50 mb-4">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  zoomWithScroll={true}
+                  showGrid={false}
+                  style={{
+                    containerStyle: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    },
+                    cropAreaStyle: {
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                    },
+                  }}
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm uppercase tracking-wider mb-2 text-foreground/60">
+                  Zoom: {zoom.toFixed(1)}x
+                </label>
+                <input
+                  type="range"
+                  min={0.5}
+                  max={5}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+
+              <p className="text-xs text-foreground/40 mb-6">
+                Output: 3000×3000px • Drag to reposition • Scroll to zoom
+              </p>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setImageToCrop(null);
+                    setCrop({ x: 0, y: 0 });
+                    setZoom(1);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleCropConfirm}
+                  loading={uploadingCover}
+                  className="uppercase tracking-wider"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
