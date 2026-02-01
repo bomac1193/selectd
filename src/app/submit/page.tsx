@@ -33,7 +33,7 @@ export default function SubmitPage() {
         <div className="pt-12 border-t border-border space-y-6">
           <div className="flex items-center justify-center gap-8 text-xs text-foreground/40">
             <Link
-              href="/canon"
+              href="/about"
               className="hover:text-foreground/60 transition-colors"
               style={{ fontSize: "12px" }}
             >

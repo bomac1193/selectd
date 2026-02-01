@@ -91,7 +91,7 @@ export default function ManifestoPage() {
             </p>
             <div className="text-center">
               <Link
-                href="/canon"
+                href="/about"
                 className="text-xs text-foreground/40 hover:text-foreground/60 transition-colors font-normal"
                 style={{
                   fontSize: "12px",
