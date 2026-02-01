@@ -1,145 +1,143 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 
-export default async function CanonPage() {
-  const session = await auth();
-
-  // Canon is private - only for authenticated users
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
-  // Get completed selections (the canon)
-  const selections = await prisma.battle.findMany({
-    where: {
-      status: "COMPLETED",
-      winnerId: { not: null },
-    },
-    include: {
-      track1: true,
-      track2: true,
-      player1: {
-        select: { name: true, username: true },
-      },
-      player2: {
-        select: { name: true, username: true },
-      },
-    },
-    orderBy: {
-      completedAt: "desc",
-    },
-    take: 100,
-  });
-
+export default function CanonPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold uppercase tracking-wide">
-          Canon
-        </h1>
-      </div>
-
-      <div className="space-y-4">
-        {selections.length === 0 ? (
-          <div className="border border-border p-12 text-center">
-            <p className="text-foreground/60 text-sm">—</p>
+    <main className="min-h-screen bg-background text-foreground">
+      {/* The Canon */}
+      <section className="border-b border-border py-32">
+        <div className="container mx-auto max-w-3xl space-y-16 px-4">
+          <div className="space-y-8">
+            <h2 className="text-center text-sm uppercase tracking-widest text-foreground/40">
+              The Canon
+            </h2>
+            <p className="text-center text-xl leading-relaxed text-foreground/80">
+              In a world where everything can be generated,<br />
+              what matters is what endures.
+            </p>
+            <div className="space-y-2 text-center text-foreground/60">
+              <p>No revisions.</p>
+              <p>No re-rankings.</p>
+              <p>No deletions.</p>
+            </div>
+            <p className="text-center text-lg text-foreground/80">
+              A permanent cultural record.
+            </p>
           </div>
-        ) : (
-          selections.map((selection) => {
-            const winningTrack =
-              selection.winnerId === selection.player1Id
-                ? selection.track1
-                : selection.track2;
-            const losingTrack =
-              selection.winnerId === selection.player1Id
-                ? selection.track2
-                : selection.track1;
+        </div>
+      </section>
 
-            return (
-              <Link
-                key={selection.id}
-                href={`/selection/${selection.id}`}
-                className="block border border-border hover:border-foreground transition-colors"
-              >
-                <div className="p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Winning Track */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="relative w-12 h-12 flex-shrink-0 bg-card">
-                          {winningTrack.coverUrl ? (
-                            <Image
-                              src={winningTrack.coverUrl}
-                              alt={winningTrack.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-foreground/10" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">
-                            {winningTrack.title}
-                          </p>
-                          <p className="text-sm text-foreground/60 truncate">
-                            {winningTrack.artist || "Unknown"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+      {/* What SELECTD Is Not */}
+      <section className="border-b border-border py-32">
+        <div className="container mx-auto max-w-3xl space-y-16 px-4">
+          <div className="space-y-8">
+            <h2 className="text-center text-sm uppercase tracking-widest text-foreground/40">
+              What SELECTD Is Not
+            </h2>
+            <div className="space-y-3 text-center text-foreground/60">
+              <p>Not a community</p>
+              <p>Not a leaderboard</p>
+              <p>Not a debate</p>
+              <p>Not a marketplace for attention</p>
+            </div>
+            <p className="text-center text-lg text-foreground/80">
+              Taste does not argue.
+            </p>
+          </div>
+        </div>
+      </section>
 
-                    {/* Metadata */}
-                    <div className="text-right text-xs text-foreground/40">
-                      <p>
-                        {selection.completedAt
-                          ? new Date(selection.completedAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )
-                          : "—"}
-                      </p>
-                    </div>
-                  </div>
+      {/* How It Works */}
+      <section className="border-b border-border py-32">
+        <div className="container mx-auto max-w-3xl space-y-16 px-4">
+          <h2 className="text-center text-sm uppercase tracking-widest text-foreground/40">
+            How It Works
+          </h2>
 
-                  {/* Losing Track */}
-                  {losingTrack && (
-                    <div className="mt-3 pt-3 border-t border-border/50">
-                      <div className="flex items-center gap-3 opacity-40">
-                        <div className="relative w-8 h-8 flex-shrink-0 bg-card">
-                          {losingTrack.coverUrl ? (
-                            <Image
-                              src={losingTrack.coverUrl}
-                              alt={losingTrack.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-foreground/10" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">{losingTrack.title}</p>
-                          <p className="text-xs text-foreground/60 truncate">
-                            {losingTrack.artist || "Unknown"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </div>
-    </div>
+          <div className="grid gap-16 md:grid-cols-3">
+            <div className="space-y-4 text-center">
+              <div className="text-4xl font-light text-foreground/40">01</div>
+              <h3 className="text-sm uppercase tracking-wider">Submit work</h3>
+            </div>
+            <div className="space-y-4 text-center">
+              <div className="text-4xl font-light text-foreground/40">02</div>
+              <h3 className="text-sm uppercase tracking-wider">Work is evaluated</h3>
+            </div>
+            <div className="space-y-4 text-center">
+              <div className="text-4xl font-light text-foreground/40">03</div>
+              <h3 className="text-sm uppercase tracking-wider">Canon entry issued</h3>
+            </div>
+          </div>
+
+          <p className="text-center text-foreground/60">
+            Nothing else happens.
+          </p>
+
+          <div className="border-t border-border pt-8 text-center text-foreground/60">
+            <p>If selected, you will know.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Who This Is For */}
+      <section className="border-b border-border py-32">
+        <div className="container mx-auto max-w-3xl space-y-16 px-4">
+          <h2 className="text-center text-sm uppercase tracking-widest text-foreground/40">
+            Who This Is For
+          </h2>
+
+          <p className="text-center text-lg leading-relaxed text-foreground/80">
+            Producers, DJs, artists, and curators<br />
+            who already know their work stands apart<br />
+            and do not require validation.
+          </p>
+
+          <div className="space-y-3 border-t border-border pt-8 text-center text-foreground/60">
+            <p>If you need encouragement, this is not for you.</p>
+            <p>If you need feedback, this is not for you.</p>
+          </div>
+
+          <p className="text-center text-lg text-foreground/80">
+            If you trust your taste — proceed.
+          </p>
+        </div>
+      </section>
+
+      {/* Finality */}
+      <section className="border-b border-border py-32">
+        <div className="container mx-auto max-w-2xl px-4 text-center space-y-8">
+          <p className="text-2xl font-light tracking-wide text-foreground">
+            Selection is final.
+          </p>
+          <div className="space-y-4 text-sm text-foreground/60">
+            <p>Canonization is discretionary.</p>
+            <p>Outcomes are final.</p>
+          </div>
+          <p className="text-sm text-foreground/40 pt-4">
+            No correspondence is entered into.
+          </p>
+        </div>
+      </section>
+
+      {/* Footer - Buried Manifesto Link */}
+      <footer className="border-t border-border py-12">
+        <div className="container mx-auto max-w-3xl px-4 text-center">
+          <Link
+            href="/manifesto"
+            className="text-xs text-foreground/40 hover:text-foreground/60 transition-colors font-normal"
+            style={{
+              fontSize: "12px",
+              fontWeight: 400,
+            }}
+          >
+            Manifesto →
+          </Link>
+          <div className="pt-6">
+            <p className="text-xs text-foreground/30">
+              Distilled by Ubani
+            </p>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }

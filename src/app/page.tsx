@@ -33,7 +33,7 @@ export default function LandingPage() {
 
           {/* Threshold Action */}
           <Link
-            href="/login"
+            href="/gate"
             className="inline-block font-sans font-normal transition-opacity hover:opacity-60"
             style={{
               fontSize: "clamp(12px, 2vw, 14px)",
