@@ -96,7 +96,7 @@ export default function CreateSelectionPage() {
           </p>
           <Button
             variant="primary"
-            onClick={() => router.push("/drop")}
+            onClick={() => router.push("/upload")}
             className="uppercase tracking-wider"
           >
             Submit track

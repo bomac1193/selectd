@@ -38,7 +38,7 @@ export default async function SelectionPage({
                 Submit tracks to create selection
               </p>
             </div>
-            <Link href="/drop">
+            <Link href="/upload">
               <Button variant="primary" className="uppercase tracking-wider">
                 Submit tracks
               </Button>
@@ -61,7 +61,7 @@ export default async function SelectionPage({
             </Button>
           </Link>
         ) : (
-          <Link href="/drop">
+          <Link href="/upload">
             <Button variant="secondary" size="lg" className="uppercase tracking-wider">
               Submit track
             </Button>
@@ -116,7 +116,7 @@ export default async function SelectionPage({
               </Button>
             </Link>
           ) : (
-            <Link href="/drop">
+            <Link href="/upload">
               <Button variant="secondary" className="uppercase tracking-wider">
                 Submit track
               </Button>
