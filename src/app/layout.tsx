@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono } from "next/font/google";
 import "@/styles/globals.css";
 
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-mono",
+});
+
 export const metadata: Metadata = {
-  title: "SELECTD - The Taste Selection Game",
-  description: "Prove your taste. Drop tracks. Win selections. Rise to the top.",
-  keywords: ["music", "selection", "game", "taste", "curator", "discovery"],
+  title: "SELECTD - A Post-Algorithmic Music Canon",
+  description: "The permanent record of evaluated music. Curator-selected. Timestamp-verified. Never deleted.",
+  keywords: ["music", "canon", "curation", "taste", "archive", "post-algorithmic"],
 };
 
 export default function RootLayout({
@@ -14,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className={`${ibmPlexMono.variable} font-mono antialiased`}>
         {children}
       </body>
     </html>

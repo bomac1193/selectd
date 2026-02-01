@@ -17,9 +17,9 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: "/battle", label: "Battle" },
-    { href: "/drop", label: "Drop" },
-    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/selection", label: "Selection" },
+    { href: "/submit", label: "Submit" },
+    { href: "/canon", label: "Canon" },
   ];
 
   return (
@@ -27,7 +27,7 @@ export function Navbar({ user }: NavbarProps) {
       {/* Desktop Navbar */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/battle" className="flex items-center space-x-2">
+          <Link href="/selection" className="flex items-center space-x-2">
             <div className="h-6 w-6 rounded bg-primary" />
             <span className="font-bold">Selectd</span>
           </Link>

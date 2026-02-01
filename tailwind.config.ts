@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        mono: ["var(--font-ibm-plex-mono)", "monospace"],
+      },
       colors: {
         border: "hsl(var(--color-border))",
         input: "hsl(var(--color-input))",

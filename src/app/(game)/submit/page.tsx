@@ -7,18 +7,18 @@ import { Button, Card, Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
-type DropSource = "UPLOAD" | "SOUNDCLOUD" | "YOUTUBE";
+type TrackSource = "UPLOAD" | "SOUNDCLOUD" | "YOUTUBE";
 
 interface FormState {
   title: string;
   artist: string;
   audioUrl: string;
   coverUrl: string;
-  source: DropSource;
+  source: TrackSource;
   sourceUrl: string;
 }
 
-export default function DropPage() {
+export default function SubmitPage() {
   const router = useRouter();
   const [step, setStep] = useState<"source" | "details" | "confirm">("source");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,7 +89,7 @@ export default function DropPage() {
     void uploadFile(file);
   };
 
-  const handleSourceSelect = (source: DropSource) => {
+  const handleSourceSelect = (source: TrackSource) => {
     setForm((prev) => ({ ...prev, source }));
     setStep("details");
   };
@@ -114,13 +114,13 @@ export default function DropPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to drop track");
+        throw new Error(error.error || "Failed to submit track");
       }
 
       router.push("/selection");
     } catch (error) {
-      console.error("Failed to drop track:", error);
-      alert(error instanceof Error ? error.message : "Failed to drop track");
+      console.error("Failed to submit track:", error);
+      alert(error instanceof Error ? error.message : "Failed to submit track");
     } finally {
       setIsSubmitting(false);
     }

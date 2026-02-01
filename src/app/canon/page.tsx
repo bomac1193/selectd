@@ -1,153 +1,142 @@
-export default function CanonPage() {
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import Image from "next/image";
+import Link from "next/link";
+
+export default async function CanonPage() {
+  const session = await auth();
+
+  // Get completed selections (the canon)
+  const selections = await prisma.battle.findMany({
+    where: {
+      status: "COMPLETED",
+      winnerId: { not: null },
+    },
+    include: {
+      track1: true,
+      track2: true,
+      player1: {
+        select: { name: true, username: true },
+      },
+      player2: {
+        select: { name: true, username: true },
+      },
+    },
+    orderBy: {
+      completedAt: "desc",
+    },
+    take: 100,
+  });
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="container mx-auto max-w-3xl px-4 py-32">
-        <div className="space-y-12">
-          {/* Title */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight mb-4">
-              SELECTD
-            </h1>
-            <p className="text-foreground/60 uppercase tracking-widest text-sm">
-              A Post-Algorithmic Music Canon
-            </p>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-2 uppercase tracking-wide">
+          Canon
+        </h1>
+        <p className="text-foreground/60 text-sm">
+          Permanent record of evaluated work
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {selections.length === 0 ? (
+          <div className="border border-border p-12 text-center">
+            <p className="text-foreground/60 text-sm">No evaluations recorded</p>
           </div>
+        ) : (
+          selections.map((selection) => {
+            const winningTrack =
+              selection.winnerId === selection.player1Id
+                ? selection.track1
+                : selection.track2;
+            const losingTrack =
+              selection.winnerId === selection.player1Id
+                ? selection.track2
+                : selection.track1;
 
-          {/* Manifesto */}
-          <div className="space-y-8 text-foreground/80 leading-relaxed border-t border-border pt-12">
-            <p>The age of abundance is over.</p>
+            return (
+              <Link
+                key={selection.id}
+                href={`/selection/${selection.id}`}
+                className="block border border-border hover:border-foreground transition-colors"
+              >
+                <div className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Winning Track */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="relative w-12 h-12 flex-shrink-0 bg-card">
+                          {winningTrack.coverUrl ? (
+                            <Image
+                              src={winningTrack.coverUrl}
+                              alt={winningTrack.title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-foreground/10" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">
+                            {winningTrack.title}
+                          </p>
+                          <p className="text-sm text-foreground/60 truncate">
+                            {winningTrack.artist || "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            <p>
-              Not because less is being made,<br />
-              but because too much is.
-            </p>
+                    {/* Metadata */}
+                    <div className="text-right text-xs text-foreground/40">
+                      <p>
+                        {selection.completedAt
+                          ? new Date(selection.completedAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )
+                          : "—"}
+                      </p>
+                    </div>
+                  </div>
 
-            <p>
-              Algorithms optimise for engagement.<br />
-              Markets reward volume.<br />
-              Artificial intelligence accelerates everything.
-            </p>
-
-            <p className="text-foreground">Meaning collapses.</p>
-
-            <div className="border-t border-border pt-8 mt-8">
-              <p>SELECTD exists for what remains.</p>
-            </div>
-
-            <p>
-              This is not a platform for discovery.<br />
-              It is not a community.<br />
-              It is not a marketplace.
-            </p>
-
-            <p className="text-foreground">It is a judgement system.</p>
-
-            <div className="border-t border-border pt-8 mt-8">
-              <p>
-                Works are submitted.<br />
-                They are evaluated under constraint.<br />
-                They are either selected or ignored.
-              </p>
-            </div>
-
-            <p>
-              Selection is rare.<br />
-              Rejection is silent.<br />
-              Outcomes are final.
-            </p>
-
-            <div className="border-t border-border pt-8 mt-8">
-              <p>
-                SELECTD does not follow trends.<br />
-                It does not reward popularity.<br />
-                It does not explain itself.
-              </p>
-            </div>
-
-            <p>
-              The canon is permanent.<br />
-              Entries are not revised, re-ranked, or removed.
-            </p>
-
-            <div className="border-t border-border pt-8 mt-8">
-              <p className="text-foreground">
-                In a world where everything can be generated,<br />
-                what matters is what endures.
-              </p>
-            </div>
-
-            <p>
-              SELECTD is not here to amplify noise.<br />
-              It exists to preserve signal.
-            </p>
-          </div>
-
-          {/* The Asymmetry */}
-          <div className="border-t border-border pt-12 space-y-8">
-            <h2 className="text-sm uppercase tracking-widest text-foreground/40">
-              The Asymmetry
-            </h2>
-
-            <div className="space-y-6 text-foreground/80">
-              <div>
-                <p className="text-foreground/60 text-sm mb-2">AI asks:</p>
-                <p className="text-lg">"What can be made?"</p>
-              </div>
-
-              <div>
-                <p className="text-foreground/60 text-sm mb-2">SELECTD answers:</p>
-                <p className="text-lg text-foreground">"What matters?"</p>
-              </div>
-            </div>
-
-            <p className="text-sm text-foreground/60">
-              SELECTD is not competing with AI.<br />
-              It is positioned after AI.
-            </p>
-          </div>
-
-          {/* Canon Principles */}
-          <div className="border-t border-border pt-12 space-y-8">
-            <h2 className="text-sm uppercase tracking-widest text-foreground/40">
-              Canon Principles
-            </h2>
-
-            <div className="space-y-4 text-sm text-foreground/70">
-              <div className="border-l-2 border-foreground/20 pl-4">
-                <p className="text-foreground mb-1">Permanence</p>
-                <p>Once canonized, works are never deleted, re-ranked, or revised.</p>
-              </div>
-
-              <div className="border-l-2 border-foreground/20 pl-4">
-                <p className="text-foreground mb-1">Timestamp</p>
-                <p>Each entry carries the exact moment of selection.</p>
-              </div>
-
-              <div className="border-l-2 border-foreground/20 pl-4">
-                <p className="text-foreground mb-1">Scarcity</p>
-                <p>Selection is rare by design. Most works are not chosen.</p>
-              </div>
-
-              <div className="border-l-2 border-foreground/20 pl-4">
-                <p className="text-foreground mb-1">Silence</p>
-                <p>Rejection carries no feedback. There are no appeals.</p>
-              </div>
-
-              <div className="border-l-2 border-foreground/20 pl-4">
-                <p className="text-foreground mb-1">Historical Record</p>
-                <p>The canon functions as cultural archive, not feed.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-border pt-12 text-center">
-            <p className="text-sm text-foreground/40">
-              Feeds rot. Canons endure.
-            </p>
-          </div>
-        </div>
-      </section>
-    </main>
+                  {/* Losing Track */}
+                  {losingTrack && (
+                    <div className="mt-3 pt-3 border-t border-border/50">
+                      <div className="flex items-center gap-3 opacity-40">
+                        <div className="relative w-8 h-8 flex-shrink-0 bg-card">
+                          {losingTrack.coverUrl ? (
+                            <Image
+                              src={losingTrack.coverUrl}
+                              alt={losingTrack.title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-foreground/10" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm truncate">{losingTrack.title}</p>
+                          <p className="text-xs text-foreground/60 truncate">
+                            {losingTrack.artist || "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }
