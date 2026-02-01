@@ -51,27 +51,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     async signIn({ user, account }) {
-      if (!user.id) return true;
-
-      try {
-        // Ensure player profile exists on sign in
-        await ensurePlayerProfile(user.id);
-
-        // Update login streak
-        const { updateLoginStreak } = await import("./missions");
-        await updateLoginStreak(user.id);
-      } catch (error) {
-        console.warn("signIn: profile/streak update skipped", error);
-      }
-
+      // Just allow sign in, profile creation happens in events.createUser
       return true;
     },
   },
   events: {
     async createUser({ user }) {
-      // Create player profile for new users
+      // Profile creation is optional for now
       if (user.id) {
-        await ensurePlayerProfile(user.id);
+        try {
+          await ensurePlayerProfile(user.id);
+        } catch (error) {
+          console.warn("createUser: profile creation skipped", error);
+        }
       }
     },
   },
