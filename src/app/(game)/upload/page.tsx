@@ -240,7 +240,7 @@ export default function SubmitPage() {
         throw new Error(error.error || "Failed to submit track");
       }
 
-      router.push("/selection");
+      router.push("/canon");
     } catch (error) {
       console.error("Failed to submit track:", error);
       alert(error instanceof Error ? error.message : "Failed to submit track");
