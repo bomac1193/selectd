@@ -78,8 +78,7 @@ export async function createDrop(input: CreateDropInput): Promise<Drop> {
     },
   });
 
-  // Auto-approve for now (in production, add moderation)
-  const approvedDrop = await approveDrop(drop.id);
+  // Drops stay PENDING until curator approval
 
   // Update user stats
   await prisma.playerProfile.updateMany({
@@ -90,7 +89,7 @@ export async function createDrop(input: CreateDropInput): Promise<Drop> {
     },
   });
 
-  return approvedDrop;
+  return drop;
 }
 
 /**
