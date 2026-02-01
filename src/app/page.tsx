@@ -60,7 +60,7 @@ export default function LandingPage() {
             </p>
             <div className="pt-8">
               <Link
-                href="/canon"
+                href="/manifesto"
                 className="text-sm text-foreground/60 hover:text-foreground border-b border-foreground/20 hover:border-foreground transition-colors"
               >
                 Read the full manifesto →
@@ -116,9 +116,8 @@ export default function LandingPage() {
             Nothing else happens.
           </p>
 
-          <div className="space-y-4 border-t border-border pt-8 text-center text-foreground/60">
-            <p>If you are selected, you will know.</p>
-            <p>If you are not, nothing is owed.</p>
+          <div className="border-t border-border pt-8 text-center text-foreground/60">
+            <p>If selected, you will know.</p>
           </div>
         </div>
       </section>
@@ -168,7 +167,7 @@ export default function LandingPage() {
           </p>
           <div className="pt-4">
             <Link
-              href="/canon"
+              href="/manifesto"
               className="text-xs text-foreground/40 hover:text-foreground/60 transition-colors"
             >
               Manifesto

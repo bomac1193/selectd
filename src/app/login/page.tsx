@@ -51,7 +51,6 @@ export default function LoginPage() {
             </div>
             <div className="pt-4 text-foreground/70">
               <p>If selected, you will know.</p>
-              <p>If not, nothing happens.</p>
             </div>
           </div>
         </div>

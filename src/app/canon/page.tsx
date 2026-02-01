@@ -1,10 +1,16 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
 export default async function CanonPage() {
   const session = await auth();
+
+  // Canon is private - only for authenticated users
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
 
   // Get completed selections (the canon)
   const selections = await prisma.battle.findMany({
@@ -31,18 +37,15 @@ export default async function CanonPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2 uppercase tracking-wide">
+        <h1 className="text-2xl font-bold uppercase tracking-wide">
           Canon
         </h1>
-        <p className="text-foreground/60 text-sm">
-          Permanent record of evaluated work
-        </p>
       </div>
 
       <div className="space-y-4">
         {selections.length === 0 ? (
           <div className="border border-border p-12 text-center">
-            <p className="text-foreground/60 text-sm">No evaluations recorded</p>
+            <p className="text-foreground/60 text-sm">—</p>
           </div>
         ) : (
           selections.map((selection) => {

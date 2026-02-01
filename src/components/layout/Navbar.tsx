@@ -17,9 +17,8 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: "/selection", label: "Selection" },
+    { href: "/selection", label: "Enter" },
     { href: "/submit", label: "Submit" },
-    { href: "/canon", label: "Canon" },
   ];
 
   return (
@@ -51,12 +50,14 @@ export function Navbar({ user }: NavbarProps) {
             {user && (
               <Link
                 href="/profile"
-                className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors hover:bg-accent"
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-foreground",
+                  pathname === "/profile"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                )}
               >
-                <Avatar src={user.image} name={user.name} size="sm" />
-                <span className="hidden text-sm font-medium sm:inline-block">
-                  {user.username || user.name || "Player"}
-                </span>
+                Access
               </Link>
             )}
           </div>
@@ -89,7 +90,7 @@ export function Navbar({ user }: NavbarProps) {
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Profile
+            Access
           </Link>
         </div>
       </nav>
