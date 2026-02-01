@@ -1,0 +1,500 @@
+/**
+ * Battle Service
+ * Core game mechanics for taste battles
+ */
+
+import { prisma } from "./prisma";
+import { sendBattleSignals, sendVoteSignal } from "./canora-client";
+import type { Battle, Drop, Vote, BattleStatus, BattleType, VoteChoice } from "@prisma/client";
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const MATCHING_TIMEOUT_MS = 60 * 1000;      // 60 seconds to find opponent
+const SELECTING_TIMEOUT_MS = 30 * 1000;     // 30 seconds to select track
+const VOTING_DURATION_MS = 2 * 60 * 1000;   // 2 minutes for voting
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export interface CreateBattleInput {
+  userId: string;
+  trackId: string;
+  battleType?: BattleType;
+}
+
+export interface JoinBattleInput {
+  battleId: string;
+  userId: string;
+  trackId: string;
+}
+
+export interface CastVoteInput {
+  battleId: string;
+  voterId: string;
+  votedFor: VoteChoice;
+  conviction?: number;
+}
+
+export interface BattleWithDetails extends Battle {
+  player1: { id: string; name: string | null; image: string | null };
+  player2: { id: string; name: string | null; image: string | null } | null;
+  track1: Drop;
+  track2: Drop | null;
+  votes: Vote[];
+  _count: { votes: number };
+}
+
+// =============================================================================
+// BATTLE LIFECYCLE
+// =============================================================================
+
+/**
+ * Create a new battle and start matchmaking
+ */
+export async function createBattle(input: CreateBattleInput): Promise<Battle> {
+  const { userId, trackId, battleType = "CURATOR_VS_CURATOR" } = input;
+
+  // Verify track belongs to user and is approved
+  const track = await prisma.drop.findFirst({
+    where: {
+      id: trackId,
+      userId,
+      status: "APPROVED",
+    },
+  });
+
+  if (!track) {
+    throw new Error("Track not found or not approved");
+  }
+
+  // Check if user is already in an active battle
+  const activeBattle = await prisma.battle.findFirst({
+    where: {
+      OR: [
+        { player1Id: userId, status: { in: ["MATCHING", "SELECTING", "PLAYING", "VOTING"] } },
+        { player2Id: userId, status: { in: ["MATCHING", "SELECTING", "PLAYING", "VOTING"] } },
+      ],
+    },
+  });
+
+  if (activeBattle) {
+    throw new Error("Already in an active battle");
+  }
+
+  // Try to find an existing battle waiting for opponent
+  const waitingBattle = await prisma.battle.findFirst({
+    where: {
+      status: "MATCHING",
+      player2Id: null,
+      player1Id: { not: userId },
+      battleType,
+      matchingEndsAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (waitingBattle) {
+    // Join existing battle
+    return joinBattle({
+      battleId: waitingBattle.id,
+      userId,
+      trackId,
+    });
+  }
+
+  // Create new battle
+  const battle = await prisma.battle.create({
+    data: {
+      player1Id: userId,
+      track1Id: trackId,
+      battleType,
+      status: "MATCHING",
+      matchingEndsAt: new Date(Date.now() + MATCHING_TIMEOUT_MS),
+    },
+  });
+
+  return battle;
+}
+
+/**
+ * Join an existing battle as player 2
+ */
+export async function joinBattle(input: JoinBattleInput): Promise<Battle> {
+  const { battleId, userId, trackId } = input;
+
+  // Verify track belongs to user and is approved
+  const track = await prisma.drop.findFirst({
+    where: {
+      id: trackId,
+      userId,
+      status: "APPROVED",
+    },
+  });
+
+  if (!track) {
+    throw new Error("Track not found or not approved");
+  }
+
+  // Update battle with player 2 and transition to voting
+  const battle = await prisma.battle.update({
+    where: {
+      id: battleId,
+      status: "MATCHING",
+      player2Id: null,
+    },
+    data: {
+      player2Id: userId,
+      track2Id: trackId,
+      status: "VOTING",
+      votingEndsAt: new Date(Date.now() + VOTING_DURATION_MS),
+    },
+  });
+
+  // Update track battle counts
+  await prisma.drop.updateMany({
+    where: { id: { in: [battle.track1Id, trackId] } },
+    data: { battleCount: { increment: 1 } },
+  });
+
+  return battle;
+}
+
+/**
+ * Cast a vote in a battle
+ */
+export async function castVote(input: CastVoteInput): Promise<Vote> {
+  const { battleId, voterId, votedFor, conviction = 50 } = input;
+
+  // Get battle
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    include: { track1: true, track2: true },
+  });
+
+  if (!battle) {
+    throw new Error("Battle not found");
+  }
+
+  if (battle.status !== "VOTING") {
+    throw new Error("Battle is not in voting phase");
+  }
+
+  if (battle.votingEndsAt && new Date() > battle.votingEndsAt) {
+    throw new Error("Voting has ended");
+  }
+
+  // Can't vote in your own battle
+  if (battle.player1Id === voterId || battle.player2Id === voterId) {
+    throw new Error("Cannot vote in your own battle");
+  }
+
+  // Create vote
+  const vote = await prisma.vote.create({
+    data: {
+      battleId,
+      voterId,
+      votedFor,
+      conviction,
+    },
+  });
+
+  // Update vote counts
+  const updateField = votedFor === "TRACK_1" ? "player1Votes" : "player2Votes";
+  await prisma.battle.update({
+    where: { id: battleId },
+    data: {
+      [updateField]: { increment: 1 },
+      totalVotes: { increment: 1 },
+    },
+  });
+
+  // Send signal to CANORA
+  const votedTrack = votedFor === "TRACK_1" ? battle.track1 : battle.track2;
+  if (votedTrack?.canoraWorkId) {
+    await sendVoteSignal(votedTrack.canoraWorkId, voterId);
+  }
+
+  // Update voter stats
+  await prisma.playerProfile.updateMany({
+    where: { userId: voterId },
+    data: { totalVotes: { increment: 1 } },
+  });
+
+  return vote;
+}
+
+/**
+ * Complete a battle and determine winner
+ */
+export async function completeBattle(battleId: string): Promise<Battle> {
+  const battle = await prisma.battle.findUnique({
+    where: { id: battleId },
+    include: {
+      track1: true,
+      track2: true,
+      votes: true,
+    },
+  });
+
+  if (!battle) {
+    throw new Error("Battle not found");
+  }
+
+  if (battle.status !== "VOTING") {
+    throw new Error("Battle is not in voting phase");
+  }
+
+  // Determine winner
+  let winnerId: string | null = null;
+  let winnerTrackId: string | null = null;
+
+  if (battle.player1Votes > battle.player2Votes) {
+    winnerId = battle.player1Id;
+    winnerTrackId = battle.track1Id;
+  } else if (battle.player2Votes > battle.player1Votes) {
+    winnerId = battle.player2Id;
+    winnerTrackId = battle.track2Id;
+  }
+  // If tied, no winner
+
+  // Update battle
+  const completedBattle = await prisma.battle.update({
+    where: { id: battleId },
+    data: {
+      status: "COMPLETED",
+      winnerId,
+      winnerTrackId,
+      completedAt: new Date(),
+    },
+  });
+
+  // Update player stats
+  if (winnerId && battle.player2Id) {
+    const loserId = winnerId === battle.player1Id ? battle.player2Id : battle.player1Id;
+
+    // Winner stats
+    await prisma.playerProfile.updateMany({
+      where: { userId: winnerId },
+      data: {
+        totalBattles: { increment: 1 },
+        battleWins: { increment: 1 },
+        xp: { increment: 100 },
+        tastePoints: { increment: 50 },
+        currentStreak: { increment: 1 },
+      },
+    });
+
+    // Loser stats
+    await prisma.playerProfile.updateMany({
+      where: { userId: loserId },
+      data: {
+        totalBattles: { increment: 1 },
+        xp: { increment: 25 },
+        currentStreak: 0,
+      },
+    });
+
+    // Update track win counts
+    if (winnerTrackId) {
+      await prisma.drop.update({
+        where: { id: winnerTrackId },
+        data: {
+          winCount: { increment: 1 },
+        },
+      });
+    }
+
+    // Calculate win rates for both tracks
+    await updateTrackWinRate(battle.track1Id);
+    if (battle.track2Id) {
+      await updateTrackWinRate(battle.track2Id);
+    }
+
+    // Update vote correctness
+    await updateVoteCorrectness(battleId, winnerTrackId);
+
+    // Send signals to CANORA
+    await sendBattleSignals({
+      winnerId,
+      loserId,
+      winnerCanoraWorkId: winnerTrackId === battle.track1Id
+        ? battle.track1?.canoraWorkId ?? null
+        : battle.track2?.canoraWorkId ?? null,
+      loserCanoraWorkId: winnerTrackId === battle.track1Id
+        ? battle.track2?.canoraWorkId ?? null
+        : battle.track1?.canoraWorkId ?? null,
+      totalVotes: battle.totalVotes,
+    });
+
+    // Mark CANORA signal sent
+    await prisma.battle.update({
+      where: { id: battleId },
+      data: { canoraSignalSent: true },
+    });
+  }
+
+  return completedBattle;
+}
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+async function updateTrackWinRate(trackId: string): Promise<void> {
+  const track = await prisma.drop.findUnique({
+    where: { id: trackId },
+    select: { battleCount: true, winCount: true },
+  });
+
+  if (track && track.battleCount > 0) {
+    const winRate = (track.winCount / track.battleCount) * 100;
+    await prisma.drop.update({
+      where: { id: trackId },
+      data: { winRate },
+    });
+  }
+}
+
+async function updateVoteCorrectness(
+  battleId: string,
+  winnerTrackId: string | null
+): Promise<void> {
+  if (!winnerTrackId) return;
+
+  const winnerChoice: VoteChoice = winnerTrackId === (await prisma.battle.findUnique({
+    where: { id: battleId },
+    select: { track1Id: true },
+  }))?.track1Id ? "TRACK_1" : "TRACK_2";
+
+  // Mark correct votes
+  await prisma.vote.updateMany({
+    where: { battleId, votedFor: winnerChoice },
+    data: { correct: true },
+  });
+
+  // Mark incorrect votes
+  await prisma.vote.updateMany({
+    where: { battleId, votedFor: { not: winnerChoice } },
+    data: { correct: false },
+  });
+
+  // Update voter stats for correct picks
+  const correctVotes = await prisma.vote.findMany({
+    where: { battleId, correct: true },
+    select: { voterId: true },
+  });
+
+  for (const vote of correctVotes) {
+    await prisma.playerProfile.updateMany({
+      where: { userId: vote.voterId },
+      data: { correctPicks: { increment: 1 } },
+    });
+  }
+}
+
+// =============================================================================
+// QUERY FUNCTIONS
+// =============================================================================
+
+/**
+ * Get active battles for voting
+ */
+export async function getActiveBattles(limit: number = 10): Promise<BattleWithDetails[]> {
+  return prisma.battle.findMany({
+    where: {
+      status: "VOTING",
+      votingEndsAt: { gt: new Date() },
+    },
+    include: {
+      player1: { select: { id: true, name: true, image: true } },
+      player2: { select: { id: true, name: true, image: true } },
+      track1: true,
+      track2: true,
+      votes: true,
+      _count: { select: { votes: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  }) as Promise<BattleWithDetails[]>;
+}
+
+/**
+ * Get battle by ID with full details
+ */
+export async function getBattleById(battleId: string): Promise<BattleWithDetails | null> {
+  return prisma.battle.findUnique({
+    where: { id: battleId },
+    include: {
+      player1: { select: { id: true, name: true, image: true } },
+      player2: { select: { id: true, name: true, image: true } },
+      track1: true,
+      track2: true,
+      votes: true,
+      _count: { select: { votes: true } },
+    },
+  }) as Promise<BattleWithDetails | null>;
+}
+
+/**
+ * Get user's battle history
+ */
+export async function getUserBattles(
+  userId: string,
+  limit: number = 20
+): Promise<BattleWithDetails[]> {
+  return prisma.battle.findMany({
+    where: {
+      OR: [{ player1Id: userId }, { player2Id: userId }],
+      status: "COMPLETED",
+    },
+    include: {
+      player1: { select: { id: true, name: true, image: true } },
+      player2: { select: { id: true, name: true, image: true } },
+      track1: true,
+      track2: true,
+      votes: true,
+      _count: { select: { votes: true } },
+    },
+    orderBy: { completedAt: "desc" },
+    take: limit,
+  }) as Promise<BattleWithDetails[]>;
+}
+
+/**
+ * Process expired battles
+ * Called by cron job to clean up stale battles
+ */
+export async function processExpiredBattles(): Promise<number> {
+  const now = new Date();
+
+  // Cancel expired matching battles
+  const cancelledMatching = await prisma.battle.updateMany({
+    where: {
+      status: "MATCHING",
+      matchingEndsAt: { lt: now },
+    },
+    data: { status: "EXPIRED" },
+  });
+
+  // Complete expired voting battles
+  const expiredVoting = await prisma.battle.findMany({
+    where: {
+      status: "VOTING",
+      votingEndsAt: { lt: now },
+    },
+    select: { id: true },
+  });
+
+  for (const battle of expiredVoting) {
+    try {
+      await completeBattle(battle.id);
+    } catch (error) {
+      console.error(`Failed to complete battle ${battle.id}:`, error);
+    }
+  }
+
+  return cancelledMatching.count + expiredVoting.length;
+}

@@ -1,0 +1,464 @@
+// SELECTR - The Taste Battle Game
+// Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// AUTH MODELS (NextAuth v5 compatible)
+// =============================================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// =============================================================================
+// USER MODEL
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  username      String?   @unique
+  discordId     String?   @unique
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Game profile
+  profile   PlayerProfile?
+
+  // Activity
+  drops           Drop[]
+  battlesAsP1     Battle[]      @relation("Player1")
+  battlesAsP2     Battle[]      @relation("Player2")
+  votes           Vote[]
+  missionProgress MissionProgress[]
+  followedArtists ArtistFollow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([username])
+}
+
+// =============================================================================
+// PLAYER PROFILE (Game Stats & Reputation)
+// =============================================================================
+
+model PlayerProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Mode preference
+  preferredMode GameMode @default(CURATOR)
+
+  // Reputation scores (0-100)
+  curatorRep    Float @default(50)   // Earned via drops/battles
+  fanRep        Float @default(50)   // Earned via artist votes
+  convictionScore Float @default(50) // Consistency of picks
+
+  // Stats
+  totalDrops    Int @default(0)
+  totalBattles  Int @default(0)
+  battleWins    Int @default(0)
+  totalVotes    Int @default(0)
+  correctPicks  Int @default(0)     // Voted for winner
+
+  // Streak tracking
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+
+  // Points/currency
+  tastePoints   Int @default(0)
+  xp            Int @default(0)
+  level         Int @default(1)
+
+  // Taste profile (6-axis emotion from CANORA/Etherfeed)
+  tasteEcstatic   Float?
+  tasteYearning   Float?
+  tasteCorrupted  Float?
+  tasteLucid      Float?
+  tasteDivine     Float?
+  tasteFeral      Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([curatorRep])
+  @@index([fanRep])
+  @@index([level])
+}
+
+enum GameMode {
+  CURATOR   // Drop tracks, enter battles
+  FAN       // Follow artists, vote in artist battles
+}
+
+// =============================================================================
+// DROP MODEL (Track Submissions)
+// =============================================================================
+
+model Drop {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Track info
+  title       String
+  artist      String?
+  audioUrl    String
+  coverUrl    String?
+  duration    Int?         // Seconds
+
+  // Source
+  source      DropSource   @default(UPLOAD)
+  sourceUrl   String?      // Original URL if imported
+  sourceId    String?      // ID from source platform
+
+  // CANORA sync
+  canoraWorkId String?     // Work ID in CANORA
+  canoraCtadId String?     // CTAD ID
+  syncedAt     DateTime?
+
+  // Status
+  status      DropStatus   @default(PENDING)
+
+  // Metrics
+  battleCount Int          @default(0)
+  winCount    Int          @default(0)
+  voteCount   Int          @default(0)
+  winRate     Float        @default(0)
+
+  // Discovery scores (synced from CANORA)
+  shadowScore  Float?
+  noveltyScore Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  battlesAsTrack1 Battle[] @relation("Track1")
+  battlesAsTrack2 Battle[] @relation("Track2")
+
+  @@index([userId])
+  @@index([status])
+  @@index([canoraWorkId])
+  @@index([winRate])
+}
+
+enum DropSource {
+  UPLOAD        // Direct upload
+  SOUNDCLOUD    // Imported from SoundCloud
+  YOUTUBE       // Imported from YouTube
+  CANORA        // Imported from CANORA
+}
+
+enum DropStatus {
+  PENDING       // Awaiting moderation
+  APPROVED      // Ready for battles
+  REJECTED      // Failed moderation
+  ARCHIVED      // No longer active
+}
+
+// =============================================================================
+// BATTLE MODEL (1v1 Competitions)
+// =============================================================================
+
+model Battle {
+  id          String       @id @default(cuid())
+
+  // Battle type
+  battleType  BattleType   @default(CURATOR_VS_CURATOR)
+
+  // Players
+  player1Id   String
+  player2Id   String?      // Null during matchmaking
+  player1     User         @relation("Player1", fields: [player1Id], references: [id])
+  player2     User?        @relation("Player2", fields: [player2Id], references: [id])
+
+  // Tracks
+  track1Id    String
+  track2Id    String?      // Null until p2 selects
+  track1      Drop         @relation("Track1", fields: [track1Id], references: [id])
+  track2      Drop?        @relation("Track2", fields: [track2Id], references: [id])
+
+  // Battle state
+  status      BattleStatus @default(MATCHING)
+
+  // Timing
+  matchingEndsAt DateTime?
+  playingEndsAt  DateTime?
+  votingEndsAt   DateTime?
+
+  // Results
+  winnerId       String?
+  winnerTrackId  String?
+  player1Votes   Int       @default(0)
+  player2Votes   Int       @default(0)
+  totalVotes     Int       @default(0)
+
+  // CANORA sync
+  canoraSignalSent Boolean @default(false)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  votes Vote[]
+
+  @@index([status])
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([battleType])
+  @@index([createdAt])
+}
+
+enum BattleType {
+  CURATOR_VS_CURATOR   // Both players drop their own tracks
+  ARTIST_VS_ARTIST     // Fan mode: vote for favorite artist's track
+  RANDOM_MATCHUP       // System-generated battles
+}
+
+enum BattleStatus {
+  MATCHING      // Finding opponent
+  SELECTING     // P2 selecting track
+  PLAYING       // Audio playing for voters
+  VOTING        // Crowd voting
+  COMPLETED     // Battle finished
+  CANCELLED     // Battle cancelled
+  EXPIRED       // Timed out
+}
+
+// =============================================================================
+// VOTE MODEL
+// =============================================================================
+
+model Vote {
+  id        String   @id @default(cuid())
+  battleId  String
+  voterId   String
+
+  battle    Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  voter     User     @relation(fields: [voterId], references: [id])
+
+  // Vote choice
+  votedFor  VoteChoice
+
+  // Conviction (how confident)
+  conviction Float   @default(50)  // 0-100
+
+  // Was this vote correct (winner)?
+  correct   Boolean?
+
+  votedAt   DateTime @default(now())
+
+  @@unique([battleId, voterId])
+  @@index([battleId])
+  @@index([voterId])
+}
+
+enum VoteChoice {
+  TRACK_1
+  TRACK_2
+}
+
+// =============================================================================
+// ARTIST FOLLOW (Fan Mode)
+// =============================================================================
+
+model ArtistFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Artist info (could be CANORA user or external)
+  artistName    String
+  artistId      String?       // CANORA user ID if linked
+  artistImage   String?
+
+  // Conviction tracking
+  totalVotes      Int   @default(0)
+  correctVotes    Int   @default(0)
+  convictionScore Float @default(50)
+
+  followedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, artistName])
+  @@index([userId])
+  @@index([artistName])
+}
+
+// =============================================================================
+// MISSIONS (Daily/Weekly Challenges)
+// =============================================================================
+
+model Mission {
+  id          String      @id @default(cuid())
+
+  // Mission details
+  title       String
+  description String
+  type        MissionType
+  targetValue Int         // e.g., "Win 3 battles" → 3
+
+  // Rewards
+  xpReward    Int         @default(100)
+  pointsReward Int        @default(50)
+
+  // Schedule
+  frequency   MissionFrequency @default(DAILY)
+  activeFrom  DateTime
+  activeUntil DateTime
+
+  // Active flag
+  active      Boolean     @default(true)
+
+  createdAt   DateTime    @default(now())
+
+  // Progress tracking
+  progress    MissionProgress[]
+
+  @@index([type])
+  @@index([frequency])
+  @@index([active])
+}
+
+model MissionProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  missionId  String
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission    Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  // Progress
+  progress   Int      @default(0)
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+
+  // Reward claimed
+  rewardClaimed Boolean @default(false)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, missionId])
+  @@index([userId])
+  @@index([missionId])
+  @@index([completed])
+}
+
+enum MissionType {
+  DROP_TRACKS        // Drop X tracks
+  WIN_BATTLES        // Win X battles
+  VOTE_IN_BATTLES    // Vote in X battles
+  FOLLOW_ARTISTS     // Follow X artists (Fan Mode)
+  CORRECT_VOTES      // Get X correct votes
+  LOGIN_STREAK       // Login X days in a row
+  EARN_XP            // Earn X XP
+}
+
+enum MissionFrequency {
+  DAILY
+  WEEKLY
+  SPECIAL           // Limited time events
+}
+
+// =============================================================================
+// LEADERBOARD SNAPSHOTS
+// =============================================================================
+
+model LeaderboardSnapshot {
+  id        String          @id @default(cuid())
+
+  type      LeaderboardType
+  period    String          // "daily", "weekly", "all-time"
+
+  // Snapshot data (JSON array of {userId, rank, score, username, image})
+  rankings  Json
+
+  createdAt DateTime        @default(now())
+
+  @@index([type, period])
+  @@index([createdAt])
+}
+
+enum LeaderboardType {
+  CURATOR_REP       // By curator reputation
+  FAN_REP           // By fan reputation
+  WIN_RATE          // By battle win rate
+  CONVICTION        // By conviction score
+  XP                // By total XP
+  TASTE_POINTS      // By taste points
+}
+
+// =============================================================================
+// CANORA SYNC LOG
+// =============================================================================
+
+model CanoraSyncLog {
+  id          String   @id @default(cuid())
+
+  // What was synced
+  entityType  String   // "drop", "battle", "vote"
+  entityId    String
+  action      String   // "create_work", "send_signal", etc.
+
+  // CANORA response
+  canoraId    String?
+  success     Boolean
+  error       String?
+
+  // Request/response (for debugging)
+  request     Json?
+  response    Json?
+
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
