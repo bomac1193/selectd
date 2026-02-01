@@ -73,17 +73,17 @@ export function ReviewQueue({ drops: initialDrops }: ReviewQueueProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Progress */}
       <div className="text-sm text-foreground/40">
         {currentIndex + 1} / {drops.length}
       </div>
 
       {/* Drop Card */}
-      <div className="border border-border p-6">
-        <div className="flex gap-6 mb-6">
+      <div className="border border-border p-4">
+        <div className="flex gap-4 mb-4">
           {/* Cover */}
-          <div className="w-48 h-48 flex-shrink-0 bg-card border border-border">
+          <div className="w-32 h-32 flex-shrink-0 bg-card border border-border">
             {currentDrop.coverUrl ? (
               <div className="relative w-full h-full">
                 <Image
@@ -101,50 +101,32 @@ export function ReviewQueue({ drops: initialDrops }: ReviewQueueProps) {
           </div>
 
           {/* Info */}
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 space-y-2">
             <div>
-              <h2 className="text-xl font-semibold mb-1">{currentDrop.title}</h2>
-              <p className="text-foreground/60">{currentDrop.artist || "Unknown"}</p>
+              <h2 className="text-lg font-semibold mb-0.5">{currentDrop.title}</h2>
+              <p className="text-sm text-foreground/60">{currentDrop.artist || "Unknown"}</p>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div>
-                <span className="text-foreground/40 uppercase tracking-wider text-xs">
-                  Source
+            <div className="space-y-1 text-xs">
+              <div className="flex items-baseline gap-2">
+                <span className="text-foreground/40 uppercase tracking-wider">
+                  Source:
                 </span>
                 <p className="text-foreground/80">{currentDrop.source}</p>
               </div>
 
-              {currentDrop.sourceUrl && (
-                <div>
-                  <span className="text-foreground/40 uppercase tracking-wider text-xs">
-                    Source URL
-                  </span>
-                  <p className="text-foreground/80 break-all">
-                    <a
-                      href={currentDrop.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground"
-                    >
-                      {currentDrop.sourceUrl}
-                    </a>
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <span className="text-foreground/40 uppercase tracking-wider text-xs">
-                  Submitted by
+              <div className="flex items-baseline gap-2">
+                <span className="text-foreground/40 uppercase tracking-wider">
+                  By:
                 </span>
                 <p className="text-foreground/80">
                   {currentDrop.user.name || currentDrop.user.email}
                 </p>
               </div>
 
-              <div>
-                <span className="text-foreground/40 uppercase tracking-wider text-xs">
-                  Submitted
+              <div className="flex items-baseline gap-2">
+                <span className="text-foreground/40 uppercase tracking-wider">
+                  Date:
                 </span>
                 <p className="text-foreground/80">
                   {new Date(currentDrop.createdAt).toLocaleDateString()}
@@ -155,17 +137,18 @@ export function ReviewQueue({ drops: initialDrops }: ReviewQueueProps) {
         </div>
 
         {/* Audio Player */}
-        <div className="mb-6">
+        <div className="mb-4">
           <audio
             controls
             src={currentDrop.audioUrl}
             className="w-full"
-            preload="metadata"
+            preload="auto"
+            controlsList=""
           />
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-border">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           <Button
             variant="ghost"
             onClick={() => handleDecision("REJECTED")}
@@ -183,11 +166,6 @@ export function ReviewQueue({ drops: initialDrops }: ReviewQueueProps) {
             Approve
           </Button>
         </div>
-      </div>
-
-      {/* Keyboard Hints */}
-      <div className="text-xs text-foreground/30 text-center">
-        Spacebar to play/pause • A to approve • R to reject
       </div>
     </div>
   );
