@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="space-y-4">
           {hasGoogle && (
             <button
-              onClick={() => signIn("google", { callbackUrl: "/mode" })}
+              onClick={() => signIn("google", { callbackUrl: "/selection" })}
               className="flex w-full items-center justify-center gap-3 border border-border bg-background px-4 py-3 text-sm uppercase tracking-wider transition-colors hover:bg-foreground/5"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@ export default function LoginPage() {
 
           {hasDiscord && (
             <button
-              onClick={() => signIn("discord", { callbackUrl: "/mode" })}
+              onClick={() => signIn("discord", { callbackUrl: "/selection" })}
               className="flex w-full items-center justify-center gap-3 border border-border bg-background px-4 py-3 text-sm uppercase tracking-wider transition-colors hover:bg-foreground/5"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">

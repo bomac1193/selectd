@@ -71,7 +71,7 @@ export async function createSelection(input: CreateSelectionInput): Promise<Batt
   }
 
   // Check if user is already in an active battle
-  const activeSelection = await prisma.selection.findFirst({
+  const activeSelection = await prisma.battle.findFirst({
     where: {
       OR: [
         { player1Id: userId, status: { in: ["MATCHING", "SELECTING", "PLAYING", "VOTING"] } },
@@ -85,7 +85,7 @@ export async function createSelection(input: CreateSelectionInput): Promise<Batt
   }
 
   // Try to find an existing battle waiting for opponent
-  const waitingSelection = await prisma.selection.findFirst({
+  const waitingSelection = await prisma.battle.findFirst({
     where: {
       status: "MATCHING",
       player2Id: null,
@@ -106,7 +106,7 @@ export async function createSelection(input: CreateSelectionInput): Promise<Batt
   }
 
   // Create new battle
-  const battle = await prisma.selection.create({
+  const battle = await prisma.battle.create({
     data: {
       player1Id: userId,
       track1Id: trackId,
@@ -139,7 +139,7 @@ export async function joinSelection(input: JoinSelectionInput): Promise<Battle> 
   }
 
   // Update battle with player 2 and transition to voting
-  const battle = await prisma.selection.update({
+  const battle = await prisma.battle.update({
     where: {
       id: selectionId,
       status: "MATCHING",
@@ -169,7 +169,7 @@ export async function castVote(input: CastVoteInput): Promise<Vote> {
   const { selectionId, voterId, votedFor, conviction = 50 } = input;
 
   // Get battle
-  const battle = await prisma.selection.findUnique({
+  const battle = await prisma.battle.findUnique({
     where: { id: selectionId },
     include: { track1: true, track2: true },
   });
@@ -203,7 +203,7 @@ export async function castVote(input: CastVoteInput): Promise<Vote> {
 
   // Update vote counts
   const updateField = votedFor === "TRACK_1" ? "player1Votes" : "player2Votes";
-  await prisma.selection.update({
+  await prisma.battle.update({
     where: { id: selectionId },
     data: {
       [updateField]: { increment: 1 },
@@ -230,7 +230,7 @@ export async function castVote(input: CastVoteInput): Promise<Vote> {
  * Complete a battle and determine winner
  */
 export async function completeBattle(selectionId: string): Promise<Battle> {
-  const battle = await prisma.selection.findUnique({
+  const battle = await prisma.battle.findUnique({
     where: { id: selectionId },
     include: {
       track1: true,
@@ -261,7 +261,7 @@ export async function completeBattle(selectionId: string): Promise<Battle> {
   // If tied, no winner
 
   // Update battle
-  const completedSelection = await prisma.selection.update({
+  const completedSelection = await prisma.battle.update({
     where: { id: selectionId },
     data: {
       status: "COMPLETED",
@@ -330,7 +330,7 @@ export async function completeBattle(selectionId: string): Promise<Battle> {
     });
 
     // Mark CANORA signal sent
-    await prisma.selection.update({
+    await prisma.battle.update({
       where: { id: selectionId },
       data: { canoraSignalSent: true },
     });
@@ -364,7 +364,7 @@ async function updateVoteCorrectness(
 ): Promise<void> {
   if (!winnerTrackId) return;
 
-  const winnerChoice: VoteChoice = winnerTrackId === (await prisma.selection.findUnique({
+  const winnerChoice: VoteChoice = winnerTrackId === (await prisma.battle.findUnique({
     where: { id: selectionId },
     select: { track1Id: true },
   }))?.track1Id ? "TRACK_1" : "TRACK_2";
@@ -403,7 +403,7 @@ async function updateVoteCorrectness(
  * Get active battles for voting
  */
 export async function getActiveSelections(limit: number = 10): Promise<SelectionWithDetails[]> {
-  return prisma.selection.findMany({
+  return prisma.battle.findMany({
     where: {
       status: "VOTING",
       votingEndsAt: { gt: new Date() },
@@ -425,7 +425,7 @@ export async function getActiveSelections(limit: number = 10): Promise<Selection
  * Get battle by ID with full details
  */
 export async function getSelectionById(selectionId: string): Promise<SelectionWithDetails | null> {
-  return prisma.selection.findUnique({
+  return prisma.battle.findUnique({
     where: { id: selectionId },
     include: {
       player1: { select: { id: true, name: true, image: true } },
@@ -445,7 +445,7 @@ export async function getUserSelections(
   userId: string,
   limit: number = 20
 ): Promise<SelectionWithDetails[]> {
-  return prisma.selection.findMany({
+  return prisma.battle.findMany({
     where: {
       OR: [{ player1Id: userId }, { player2Id: userId }],
       status: "COMPLETED",
@@ -471,7 +471,7 @@ export async function processExpiredBattles(): Promise<number> {
   const now = new Date();
 
   // Cancel expired matching battles
-  const cancelledMatching = await prisma.selection.updateMany({
+  const cancelledMatching = await prisma.battle.updateMany({
     where: {
       status: "MATCHING",
       matchingEndsAt: { lt: now },
@@ -480,7 +480,7 @@ export async function processExpiredBattles(): Promise<number> {
   });
 
   // Complete expired voting battles
-  const expiredVoting = await prisma.selection.findMany({
+  const expiredVoting = await prisma.battle.findMany({
     where: {
       status: "VOTING",
       votingEndsAt: { lt: now },

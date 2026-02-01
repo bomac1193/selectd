@@ -100,11 +100,6 @@ export function ProfileView({
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Link href="/mode">
-              <Button variant="secondary" size="sm" className="uppercase tracking-wider">
-                Change mode
-              </Button>
-            </Link>
             <Button
               variant="ghost"
               size="sm"
