@@ -137,17 +137,13 @@ export function ReviewQueue({ drops: initialDrops }: ReviewQueueProps) {
         </div>
 
         {/* Audio Player */}
-        <div className="mb-4 flex">
+        <div className="mb-4">
           <audio
             controls
             src={currentDrop.audioUrl}
-            className="h-10"
+            className="w-full"
             preload="auto"
             controlsList=""
-            style={{
-              width: '400px',
-              maxWidth: '100%',
-            }}
           />
         </div>
 
