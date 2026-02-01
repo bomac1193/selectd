@@ -11,18 +11,23 @@ export default function LandingPage() {
               SELECTD
             </h1>
             <p className="text-xl text-foreground/60">
-              Taste, distilled.
+              A Post-Algorithmic Music Canon
             </p>
           </div>
 
           <div className="space-y-6 border-t border-border pt-12">
-            <p className="text-lg leading-relaxed text-foreground/80">
-              Every day, thousands of tracks are released.<br />
-              Most do not matter.
-            </p>
-            <p className="text-lg leading-relaxed text-foreground/80">
-              SELECTD exists to decide what does.
-            </p>
+            <div className="space-y-4">
+              <p className="text-base text-foreground/60">AI asks:</p>
+              <p className="text-2xl leading-relaxed text-foreground/80">
+                "What can be made?"
+              </p>
+            </div>
+            <div className="space-y-4">
+              <p className="text-base text-foreground/60">SELECTD answers:</p>
+              <p className="text-2xl leading-relaxed text-foreground">
+                "What matters?"
+              </p>
+            </div>
           </div>
 
           <Link
@@ -39,19 +44,28 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-3xl space-y-16 px-4">
           <div className="space-y-8">
             <h2 className="text-center text-sm uppercase tracking-widest text-foreground/40">
-              What SELECTD Is
+              The Canon
             </h2>
             <p className="text-center text-xl leading-relaxed text-foreground/80">
-              A private system for identifying music with cultural weight.
+              In a world where everything can be generated,<br />
+              what matters is what endures.
             </p>
             <div className="space-y-2 text-center text-foreground/60">
-              <p>No genres.</p>
-              <p>No trends.</p>
-              <p>No explanations.</p>
+              <p>No revisions.</p>
+              <p>No re-rankings.</p>
+              <p>No deletions.</p>
             </div>
             <p className="text-center text-lg text-foreground/80">
-              Only outcomes.
+              Permanent cultural record.
             </p>
+            <div className="pt-8">
+              <Link
+                href="/canon"
+                className="text-sm text-foreground/60 hover:text-foreground border-b border-foreground/20 hover:border-foreground transition-colors"
+              >
+                Read the full manifesto →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -90,11 +104,11 @@ export default function LandingPage() {
             </div>
             <div className="space-y-4 text-center">
               <div className="text-4xl font-light text-foreground/40">02</div>
-              <h3 className="text-sm uppercase tracking-wider">Work is reviewed</h3>
+              <h3 className="text-sm uppercase tracking-wider">Work is evaluated</h3>
             </div>
             <div className="space-y-4 text-center">
               <div className="text-4xl font-light text-foreground/40">03</div>
-              <h3 className="text-sm uppercase tracking-wider">Selection is issued</h3>
+              <h3 className="text-sm uppercase tracking-wider">Canon entry issued</h3>
             </div>
           </div>
 
@@ -146,13 +160,21 @@ export default function LandingPage() {
       <footer className="border-t border-border py-12">
         <div className="container mx-auto max-w-3xl space-y-4 px-4 text-center">
           <p className="text-sm text-foreground/40">
-            Selection is discretionary.<br />
+            Canonization is discretionary.<br />
             Outcomes are final.
           </p>
           <p className="text-sm text-foreground/40">
             No correspondence is entered into.
           </p>
-          <div className="pt-8">
+          <div className="pt-4">
+            <Link
+              href="/canon"
+              className="text-xs text-foreground/40 hover:text-foreground/60 transition-colors"
+            >
+              Manifesto
+            </Link>
+          </div>
+          <div className="pt-4">
             <p className="text-xs text-foreground/30">
               Distilled by Ubani
             </p>
