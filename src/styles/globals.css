@@ -85,6 +85,8 @@ audio {
   filter: invert(1);
   background-color: transparent;
   border-radius: 4px;
+  max-width: 500px;
+  width: 100%;
 }
 
 audio::-webkit-media-controls-enclosure {
