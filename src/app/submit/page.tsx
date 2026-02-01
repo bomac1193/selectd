@@ -30,7 +30,7 @@ export default function SubmitPage() {
         </div>
 
         {/* Footer Links - Buried */}
-        <div className="pt-12 border-t border-border">
+        <div className="pt-12 border-t border-border space-y-6">
           <div className="flex items-center justify-center gap-8 text-xs text-foreground/40">
             <Link
               href="/canon"
@@ -47,6 +47,13 @@ export default function SubmitPage() {
               Manifesto →
             </Link>
           </div>
+          {/* Maker's Mark - Pencil Signature */}
+          <p
+            className="text-foreground/30"
+            style={{ fontSize: "12px" }}
+          >
+            Distilled by Ubani
+          </p>
         </div>
       </div>
     </main>
