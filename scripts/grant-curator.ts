@@ -1,6 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { config } from "dotenv";
+import { resolve } from "path";
 
-const prisma = new PrismaClient();
+// Load .env.local
+config({ path: resolve(process.cwd(), ".env.local") });
+
+import { prisma } from "../src/lib/prisma";
 
 async function grantCurator(email: string) {
   console.log(`Granting curator access to: ${email}`);

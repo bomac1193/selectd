@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui";
+import { handleSignOut } from "@/app/actions/auth";
 
 interface NavbarProps {
   user?: {
@@ -48,17 +49,27 @@ export function Navbar({ user }: NavbarProps) {
               ))}
             </nav>
             {user && (
-              <Link
-                href="/profile"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-foreground",
-                  pathname === "/profile"
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                Access
-              </Link>
+              <>
+                <Link
+                  href="/profile"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-foreground",
+                    pathname === "/profile"
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  Access
+                </Link>
+                <form action={handleSignOut}>
+                  <button
+                    type="submit"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Logout
+                  </button>
+                </form>
+              </>
             )}
           </div>
         </div>
@@ -92,6 +103,14 @@ export function Navbar({ user }: NavbarProps) {
           >
             Access
           </Link>
+          <form action={handleSignOut}>
+            <button
+              type="submit"
+              className="flex flex-col items-center gap-1 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Logout
+            </button>
+          </form>
         </div>
       </nav>
     </>
