@@ -25,7 +25,11 @@ export default function SubmitPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [dragActiveCover, setDragActiveCover] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [form, setForm] = useState<FormState>({
     title: "",
     artist: "",
@@ -87,6 +91,44 @@ export default function SubmitPage() {
     if (!files || files.length === 0) return;
     const file = files[0];
     void uploadFile(file);
+  };
+
+  const uploadCoverImage = async (file: File) => {
+    setUploadingCover(true);
+    setCoverUploadError(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const response = await apiFetch("/api/uploads", {
+        method: "POST",
+        body,
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Upload failed");
+      }
+
+      const data = await response.json();
+
+      setForm((prev) => ({
+        ...prev,
+        coverUrl: data.url || prev.coverUrl,
+      }));
+    } catch (error) {
+      setCoverUploadError(
+        error instanceof Error ? error.message : "Upload failed"
+      );
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleCoverFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    void uploadCoverImage(file);
   };
 
   const handleSourceSelect = (source: TrackSource) => {
@@ -331,20 +373,63 @@ export default function SubmitPage() {
               />
             </div>
 
-            {/* Cover URL */}
+            {/* Cover Image Upload */}
             <div>
               <label className="block text-sm uppercase tracking-wider mb-2 text-foreground/60">
-                Cover Image URL
+                Cover Image
               </label>
-              <input
-                type="url"
-                value={form.coverUrl}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, coverUrl: e.target.value }))
-                }
-                placeholder="https://example.com/cover.jpg"
-                className="w-full px-4 py-3 bg-background border border-border focus:border-foreground focus:outline-none"
-              />
+              <div
+                className={cn(
+                  "w-full border border-border bg-background transition cursor-pointer",
+                  dragActiveCover && "border-foreground",
+                  form.coverUrl ? "p-2" : "px-4 py-8 text-center"
+                )}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragActiveCover(true);
+                }}
+                onDragLeave={() => setDragActiveCover(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragActiveCover(false);
+                  handleCoverFiles(e.dataTransfer.files);
+                }}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleCoverFiles(e.target.files)}
+                />
+                {form.coverUrl ? (
+                  <div className="relative w-full aspect-square">
+                    <Image
+                      src={form.coverUrl}
+                      alt="Cover preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-foreground/60">
+                      Select image or drag
+                    </p>
+                    {uploadingCover && (
+                      <p className="text-xs text-foreground/60 mt-2">
+                        Processing
+                      </p>
+                    )}
+                    {coverUploadError && (
+                      <p className="text-xs text-foreground/60 mt-2">
+                        Upload failed
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
