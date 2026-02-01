@@ -44,14 +44,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
-
-        // Fetch username and curator status
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { username: true, isCurator: true },
-        });
-        (session.user as { username?: string | null }).username = dbUser?.username;
-        (session.user as { isCurator?: boolean }).isCurator = dbUser?.isCurator || false;
+        // User object from database already has these fields
+        (session.user as { username?: string | null }).username = (user as any).username;
+        (session.user as { isCurator?: boolean }).isCurator = (user as any).isCurator || false;
       }
       return session;
     },
