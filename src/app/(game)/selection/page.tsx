@@ -8,10 +8,11 @@ import Link from "next/link";
 export default async function SelectionPage({
   searchParams,
 }: {
-  searchParams?: { track1?: string; track2?: string; discord?: string };
+  searchParams?: Promise<{ track1?: string; track2?: string; discord?: string }>;
 }) {
   const session = await auth();
   const userId = session?.user?.id;
+  const params = searchParams ? await searchParams : {};
 
   const [selections, userDrops] = await Promise.all([
     getActiveSelections(20),
@@ -22,7 +23,7 @@ export default async function SelectionPage({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {(searchParams?.track1 || searchParams?.track2) && (
+      {(params.track1 || params.track2) && (
         <div className="border border-border p-4 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -30,8 +31,8 @@ export default async function SelectionPage({
                 Discord selection link
               </div>
               <div className="text-base font-semibold">
-                {searchParams.track1 || "Track A"} vs{" "}
-                {searchParams.track2 || "Track B"}
+                {params.track1 || "Track A"} vs{" "}
+                {params.track2 || "Track B"}
               </div>
               <p className="text-sm text-foreground/60">
                 Submit tracks to create selection
