@@ -83,16 +83,32 @@ h1, h2, h3, h4, h5, h6 {
 /* Dark audio player styling with white controls */
 audio {
   background-color: #000;
-  border: 1px solid #333;
+  border: 1px solid #fff;
   border-radius: 4px;
-  filter: invert(1) hue-rotate(180deg);
-}
-
-/* Reset the inversion for the container to keep background black */
-audio::-webkit-media-controls-enclosure {
-  background-color: #000;
+  padding: 4px;
 }
 
 audio::-webkit-media-controls-panel {
-  background-color: transparent;
+  background-color: #000;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-mute-button {
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: #fff;
+  text-shadow: none;
+}
+
+audio::-webkit-media-controls-timeline {
+  background-color: #333;
+  border-radius: 2px;
+}
+
+audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
+  background-color: #fff;
 }
