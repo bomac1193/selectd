@@ -24,7 +24,7 @@ export default function ManifestoPage() {
             </p>
 
             <p>
-              Artificial intelligence accelerates everything.<br />
+              AI accelerates everything.<br />
               Algorithms amplify anything.<br />
               Nothing slows down.<br />
               Nothing holds up.<br />
