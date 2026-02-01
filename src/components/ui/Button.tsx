@@ -29,15 +29,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
   const variants = {
     primary:
-      "bg-gradient-to-r from-neon-pink/95 via-neon-orange/90 to-neon-yellow/80 text-black border border-transparent shadow-[0_10px_30px_rgba(255,94,140,0.35)]",
+      "bg-gradient-to-r from-neon-pink/95 via-neon-orange/90 to-neon-yellow/80 text-white border border-transparent shadow-[0_10px_30px_rgba(255,94,140,0.35)]",
     secondary:
       "bg-white/5 text-foreground border border-white/20 hover:bg-white/10 hover:border-white/40",
     ghost:
       "bg-transparent text-white/70 border border-border hover:text-white hover:border-white/30",
     fire:
-      "bg-pink-500/20 text-pink-500 border border-neon-pink/60 hover:bg-pink-500/30",
+      "bg-pink-500/20 text-white border border-neon-pink/60 hover:bg-pink-500/30",
     ice:
-      "bg-cyan-500/20 text-cyan-500 border border-neon-cyan/60 hover:bg-cyan-500/30",
+      "bg-cyan-500/20 text-white border border-neon-cyan/60 hover:bg-cyan-500/30",
     victory:
       "bg-primary text-primary-foreground border border-white/90 hover:bg-white/90",
   };
