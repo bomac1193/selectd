@@ -38,7 +38,7 @@ export default async function SelectionPage({
               </p>
             </div>
             <Link href="/drop">
-              <Button variant="default" className="uppercase tracking-wider">
+              <Button variant="primary" className="uppercase tracking-wider">
                 Submit tracks
               </Button>
             </Link>
@@ -55,7 +55,7 @@ export default async function SelectionPage({
 
         {hasDrops ? (
           <Link href="/selection/create">
-            <Button variant="default" size="lg" className="uppercase tracking-wider">
+            <Button variant="primary" size="lg" className="uppercase tracking-wider">
               Create selection
             </Button>
           </Link>
@@ -110,7 +110,7 @@ export default async function SelectionPage({
           </p>
           {hasDrops ? (
             <Link href="/selection/create">
-              <Button variant="default" className="uppercase tracking-wider">
+              <Button variant="primary" className="uppercase tracking-wider">
                 Create selection
               </Button>
             </Link>

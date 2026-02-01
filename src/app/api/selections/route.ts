@@ -7,8 +7,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import {
-  createBattle,
-  getActiveBattles,
+  createSelection,
+  getActiveSelections,
 } from "@/lib/selection";
 import { trackMissionProgress } from "@/lib/missions";
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const battle = await createBattle({
+    const battle = await createSelection({
       userId,
       trackId,
       battleType,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    const battles = await getActiveBattles(limit);
+    const battles = await getActiveSelections(limit);
 
     return NextResponse.json({ battles });
   } catch (error) {

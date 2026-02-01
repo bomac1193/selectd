@@ -31,7 +31,7 @@ interface TopTrack {
   artist: string | null;
   coverUrl: string | null;
   winRate: number;
-  selectionCount: number;
+  battleCount: number;
   user: { id: string; username: string | null; image: string | null };
 }
 
@@ -292,7 +292,7 @@ function TrackLeaderboard({ tracks }: { tracks: TopTrack[] }) {
                   {Math.round(track.winRate)}%
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {track.selectionCount} selections
+                  {track.battleCount} selections
                 </p>
               </div>
             </div>

@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getPlayerStats, ensurePlayerProfile } from "@/lib/missions";
-import { getUserBattles } from "@/lib/selection";
+import { getUserSelections } from "@/lib/selection";
 import { getUserDrops } from "@/lib/drop";
 
 export async function GET(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       getPlayerStats(userId),
-      getUserBattles(userId, 5),
+      getUserSelections(userId, 5),
       getUserDrops(userId),
     ]);
 

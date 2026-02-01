@@ -354,7 +354,7 @@ export default function DropPage() {
               Back
             </Button>
             <Button
-              variant="default"
+              variant="primary"
               disabled={!canProceed}
               onClick={() => setStep("confirm")}
               className="uppercase tracking-wider"
@@ -417,7 +417,7 @@ export default function DropPage() {
               Back
             </Button>
             <Button
-              variant="default"
+              variant="primary"
               size="lg"
               loading={isSubmitting}
               onClick={handleSubmit}

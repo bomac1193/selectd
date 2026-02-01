@@ -59,7 +59,7 @@ export default function ModeSelectionPage() {
           </div>
 
           <Button
-            variant="default"
+            variant="primary"
             size="lg"
             loading={isLoading}
             onClick={handleProceedAsObserver}

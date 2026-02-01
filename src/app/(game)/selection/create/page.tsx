@@ -95,7 +95,7 @@ export default function CreateSelectionPage() {
             Submit a track first
           </p>
           <Button
-            variant="default"
+            variant="primary"
             onClick={() => router.push("/drop")}
             className="uppercase tracking-wider"
           >
@@ -166,7 +166,7 @@ export default function CreateSelectionPage() {
               Cancel
             </Button>
             <Button
-              variant="default"
+              variant="primary"
               size="lg"
               disabled={!selectedTrack}
               loading={isCreating}

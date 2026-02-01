@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getBattleById } from "@/lib/selection";
+import { getSelectionById } from "@/lib/selection";
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const battle = await getBattleById(id);
+    const battle = await getSelectionById(id);
 
     if (!battle) {
       return NextResponse.json(
