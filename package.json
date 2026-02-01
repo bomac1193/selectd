@@ -13,6 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:cleanup": "tsx scripts/cleanup-test-data.ts",
+    "curator:grant": "tsx scripts/grant-curator.ts",
+    "curator:revoke": "tsx scripts/revoke-curator.ts",
     "bot:dev": "npm --prefix bot run dev",
     "bot:build": "npm --prefix bot run build",
     "bot:start": "npm --prefix bot run start",
