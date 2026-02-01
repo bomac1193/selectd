@@ -77,3 +77,5 @@ div[class*="min-h-screen"] {
 /* Typography: Suisse Int'l for headings, IBM Plex Sans for body */
 h1, h2, h3, h4, h5, h6 {
   font-family: "Suisse Int'l", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
