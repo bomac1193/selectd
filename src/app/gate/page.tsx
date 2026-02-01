@@ -33,7 +33,7 @@ export default function GatePage() {
         {/* Actions */}
         <div className="flex items-center justify-center gap-8 pt-4">
           <Link
-            href="/canon"
+            href="/submit"
             className="px-8 py-3 border border-foreground bg-background text-sm uppercase tracking-wider transition-colors hover:bg-foreground hover:text-background"
           >
             Proceed

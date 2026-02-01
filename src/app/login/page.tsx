@@ -39,18 +39,10 @@ export default function LoginPage() {
 
           <div className="space-y-4 border-t border-border pt-8">
             <p className="text-sm uppercase tracking-widest text-foreground/40">
-              Before proceeding
+              Identity required
             </p>
             <div className="space-y-3 text-foreground/70">
-              <p>SELECTD is a judgement system.</p>
-              <p>Not all work is suitable.</p>
-            </div>
-            <div className="space-y-2 text-sm text-foreground/60">
-              <p>There is no feedback.</p>
-              <p>There are no appeals.</p>
-            </div>
-            <div className="pt-4 text-foreground/70">
-              <p>If selected, you will know.</p>
+              <p>To issue canon entries and prevent resubmissions.</p>
             </div>
           </div>
         </div>
