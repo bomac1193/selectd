@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+/*
+ * TYPOGRAPHY SYSTEM
+ *
+ * Headings: Suisse Int'l (400 weight)
+ * Body: IBM Plex Sans (loaded via next/font)
+ *
+ * To use Suisse Int'l:
+ * 1. Add font files to /public/fonts/suisse-intl/
+ * 2. Add @font-face declarations below
+ * 3. Formats needed: woff2, woff
+ *
+ * Fallback chain: Helvetica Neue → Helvetica → Arial
+ */
+
+/*
+@font-face {
+  font-family: "Suisse Int'l";
+  src: url("/fonts/suisse-intl/SuisseIntl-Regular.woff2") format("woff2"),
+       url("/fonts/suisse-intl/SuisseIntl-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
 @theme {
   --color-background: 0 0% 0%;
   --color-foreground: 0 0% 100%;
@@ -49,7 +74,8 @@ div[class*="min-h-screen"] {
   color: inherit;
 }
 
-/* Typography: Mono for headings, Sans for body */
+/* Typography: Suisse Int'l for headings, IBM Plex Sans for body */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-ibm-plex-mono), monospace;
+  font-family: "Suisse Int'l", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }

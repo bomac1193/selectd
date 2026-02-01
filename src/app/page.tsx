@@ -7,7 +7,7 @@ export default function LandingPage() {
       <section className="container mx-auto flex min-h-screen flex-col items-center justify-center px-4">
         <div className="text-center" style={{ marginTop: "20vh" }}>
           {/* Institution Name - Desktop: 96px / Mobile: 48px */}
-          <h1 className="font-sans font-normal">
+          <h1 className="font-normal">
             <span
               className="hidden md:inline"
               style={{
@@ -31,7 +31,7 @@ export default function LandingPage() {
           </h1>
 
           {/* Law / Axiom - Desktop: 32px / Mobile: 18px */}
-          <p className="font-sans font-normal">
+          <p className="font-normal">
             <span
               className="hidden md:inline"
               style={{
