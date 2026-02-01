@@ -3,32 +3,16 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Hero - Stark & Minimal */}
+      {/* Hero - Maximum Reduction */}
       <section className="container mx-auto flex min-h-screen flex-col items-center justify-center px-4">
-        <div className="max-w-2xl space-y-12 text-center">
-          <div className="space-y-4">
-            <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
-              SELECTD
-            </h1>
-            <p className="text-xl text-foreground/60">
-              A Post-Algorithmic Music Canon
-            </p>
-          </div>
+        <div className="space-y-16 text-center">
+          <h1 className="text-6xl font-bold tracking-tight md:text-8xl">
+            SELECTD
+          </h1>
 
-          <div className="space-y-6 border-t border-border pt-12">
-            <div className="space-y-4">
-              <p className="text-base text-foreground/60">AI asks:</p>
-              <p className="text-2xl leading-relaxed text-foreground/80">
-                "What can be made?"
-              </p>
-            </div>
-            <div className="space-y-4">
-              <p className="text-base text-foreground/60">SELECTD answers:</p>
-              <p className="text-2xl leading-relaxed text-foreground">
-                "What matters?"
-              </p>
-            </div>
-          </div>
+          <p className="text-2xl md:text-3xl tracking-wide">
+            WHAT MATTERS
+          </p>
 
           <Link
             href="/login"
