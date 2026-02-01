@@ -79,3 +79,10 @@ h1, h2, h3, h4, h5, h6 {
   font-family: "Suisse Int'l", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 400;
 }
+
+/* Dark audio player with inverted colors */
+audio {
+  filter: invert(1);
+  background-color: #000;
+  border-radius: 4px;
+}
