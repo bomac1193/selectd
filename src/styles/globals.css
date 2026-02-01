@@ -80,35 +80,20 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 400;
 }
 
-/* Dark audio player styling with white controls */
+/* Clean dark audio player */
 audio {
-  background-color: #000;
-  border: 1px solid #fff;
-  border-radius: 4px;
-  padding: 4px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 audio::-webkit-media-controls-panel {
-  background-color: #000;
-}
-
-audio::-webkit-media-controls-play-button,
-audio::-webkit-media-controls-mute-button {
-  background-color: #fff;
-  border-radius: 50%;
+  background-color: transparent;
 }
 
 audio::-webkit-media-controls-current-time-display,
 audio::-webkit-media-controls-time-remaining-display {
-  color: #fff;
-  text-shadow: none;
-}
-
-audio::-webkit-media-controls-timeline {
-  background-color: #333;
-  border-radius: 2px;
-}
-
-audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
-  background-color: #fff;
+  color: rgba(255, 255, 255, 0.8);
 }
