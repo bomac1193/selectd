@@ -17,71 +17,101 @@ export default function ManifestoPage() {
 
           {/* Manifesto Body */}
           <div className="space-y-8 text-foreground/80 leading-relaxed border-t border-border pt-12">
-            <p>The age of abundance is over.</p>
-
             <p>
-              Not because less is being made,<br />
-              but because too much is.
+              The age of abundance has already arrived.<br />
+              Creation is infinite.<br />
+              Judgement is extinct.
             </p>
 
             <p>
-              Algorithms optimise for engagement.<br />
-              Artificial intelligence accelerates everything.
+              Artificial intelligence accelerates everything.<br />
+              Algorithms amplify anything.<br />
+              Nothing slows down.<br />
+              Nothing holds up.<br />
+              Nothing endures.
             </p>
 
-            <p className="text-foreground">Meaning collapses.</p>
+            <p>
+              Taste has been flattened into trend.<br />
+              Curation has collapsed into consensus.<br />
+              Meaning drowns in volume.
+            </p>
+
+            <p className="text-foreground">
+              SELECTD was not built to surface content.<br />
+              It was built to draw a line.
+            </p>
 
             <div className="border-t border-border pt-8 mt-8">
-              <p>SELECTD exists for what remains.</p>
+              <p>
+                This is not a platform.<br />
+                Not a community.<br />
+                Not a marketplace.<br />
+                Not a leaderboard.<br />
+                Not a social product.
+              </p>
+
+              <p className="text-foreground mt-6">It is a judgement system.</p>
             </div>
-
-            <p>
-              This is not a platform for discovery.<br />
-              It is not a community.<br />
-              It is not a marketplace.
-            </p>
-
-            <p className="text-foreground">It is a judgement system.</p>
 
             <div className="border-t border-border pt-8 mt-8">
               <p>
                 Works are submitted.<br />
-                They are evaluated under constraint.<br />
-                They are either selected or ignored.
+                They are reviewed under constraint.<br />
+                They are either SELECTED or ignored.
               </p>
-            </div>
 
-            <p>
-              Selection is rare.<br />
-              Rejection is silent.<br />
-              Outcomes are final.
-            </p>
+              <p className="mt-6">
+                No feedback.<br />
+                No revisions.<br />
+                No votes.<br />
+                No appeals.
+              </p>
+
+              <p className="text-foreground mt-6">Outcomes are final.</p>
+            </div>
 
             <div className="border-t border-border pt-8 mt-8">
               <p>
-                The canon is permanent.<br />
-                No revisions.<br />
-                No re-rankings.<br />
-                No deletions.
+                Canonization is rare.<br />
+                Omission is silent.<br />
+                There is no debate.
+              </p>
+
+              <p className="mt-6">
+                The canon does not update.<br />
+                The canon does not explain itself.<br />
+                The canon endures.
               </p>
             </div>
-
-            <p className="text-foreground">
-              In a world where everything can be generated,<br />
-              what matters is what endures.
-            </p>
 
             <div className="border-t border-border pt-8 mt-8">
               <p>
                 AI may assist in creation.<br />
-                Humans remain responsible for judgement.
+                But only humans can declare meaning.<br />
+                That task is not obsolete — only avoided.
+              </p>
+            </div>
+
+            <div className="border-t border-border pt-8 mt-8">
+              <p>
+                This system is not for discovery.<br />
+                Not for growth.<br />
+                Not for reach.
+              </p>
+
+              <p className="mt-6">
+                It is for those who already know what they've made.<br />
+                And are ready to be judged.
               </p>
             </div>
 
             <p className="text-foreground">
-              The future does not belong to those who generate the most,<br />
-              but to those who decide what endures.
+              If selected, you will know.<br />
+              If not, you won't.
             </p>
+
+            <p className="text-foreground">There is nothing else.</p>
           </div>
 
           {/* Footer */}
