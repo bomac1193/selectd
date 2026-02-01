@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/globals.css";
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-ibm-plex-mono",
+});
+
+const ibmPlexSans = IBM_Plex_Sans({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-sans",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${ibmPlexMono.variable} font-mono antialiased`}>
+      <body className={`${ibmPlexMono.variable} ${ibmPlexSans.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

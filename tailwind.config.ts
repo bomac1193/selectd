@@ -9,6 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        sans: ["var(--font-ibm-plex-sans)", "sans-serif"],
         mono: ["var(--font-ibm-plex-mono)", "monospace"],
       },
       colors: {
